@@ -1,0 +1,43 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    env:
+      NEXT_PUBLIC_BASE_PATH: /Momo-Homepage
+
+    strategy:
+      matrix:
+        node-version: [14.x]
+
+    steps:
+      - name: Get files
+        uses: actions/checkout@v2
+      # 设置nodejs
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node-version }}
+      # 安装依赖
+      - name: Install packages
+        run: npm i
+      # 构建项目
+      - name: Build project
+        run: npm run build
+      # 导出nextjs静态文件
+      - name: Export static files
+        run: npm run export
+      # 在包含导出文件的目录中创建一个.nojekyll文件，绕过 Jekyll
+      - name: Add .nojekyll file
+        run: touch ./out/.nojekyll
+      # https://github.com/marketplace/actions/deploy-to-github-pages
+      - name: Deploy
+        uses: JamesIves/github-pages-deploy-action@4.1.1
+        with:
+          branch: gh-pages
+          folder: out
